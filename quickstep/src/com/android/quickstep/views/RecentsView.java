@@ -835,6 +835,8 @@ public abstract class RecentsView<ACTIVITY_TYPE extends StatefulActivity<STATE_T
         }
         // make sure filter is turned off by default
         mFilterState.setFilterBy(null);
+
+        mScrollScale = getResources().getFloat(R.dimen.overview_scroll_scale);
     }
 
     /** Get the state of the filter */
