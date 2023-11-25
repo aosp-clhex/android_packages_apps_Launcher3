@@ -225,4 +225,8 @@
     <!-- All apps themed icons -->
     <string name="pref_themed_icons_title">Themed icons</string>
     <string name="pref_themed_icons_summary">Follow themed icons used on home screen</string>
+
+    <!-- Freed memory on clear all tasks -->
+    <string name="freed_memory_text">Freed up %1$s</string>
+    <string name="optimal_memory_text">Your system is now in optimal condition</string>
 </resources>
