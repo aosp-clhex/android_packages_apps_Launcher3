@@ -39,6 +39,15 @@
         android:summaryOn="@string/settings_lock_layout_summary_on"
         android:summaryOff="@string/settings_lock_layout_summary_off" />
 
+
+        <!-- Quickspace -->
+        <activity
+            android:name="com.android.launcher3.settings.QuickSpaceSettings"
+            android:label="@string/quickspace_title_settings"
+            android:theme="@style/HomeSettings.Theme"
+            android:exported="true"
+            android:autoRemoveFromRecents="true" />
+
     <Preference
         android:key="pref_trust_apps"
         android:title="@string/trust_apps_manager_name" />
@@ -60,12 +69,6 @@
             android:title="@string/title_show_google_feed"/>
 
         <SwitchPreference
-            android:key="pref_smartspace"
-            android:title="@string/smartspace_pref_title"
-            android:summary="@string/smartspace_pref_summary"
-            android:defaultValue="true" />
-
-        <SwitchPreference
             android:key="pref_dock_search"
             android:title="@string/dock_search_title"
             android:summary="@string/dock_search_summary"
@@ -77,15 +80,6 @@
             android:key="pref_suggestions"
             android:summary="@string/suggestion_pref_screen_desc">
             <intent android:action="android.settings.ACTION_CONTENT_SUGGESTIONS_SETTINGS" />
-        </Preference>
-
-        <Preference
-            android:title="@string/weather_settings_title"
-            android:summary="@string/weather_settings_summary">
-            <intent
-                android:action="android.intent.action.MAIN"
-                android:targetPackage="org.omnirom.omnijaws"
-                android:targetClass="org.omnirom.omnijaws.SettingsActivity" />
         </Preference>
 
     </androidx.preference.PreferenceCategory>

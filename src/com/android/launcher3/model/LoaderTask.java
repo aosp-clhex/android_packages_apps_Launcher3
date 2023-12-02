@@ -187,7 +187,7 @@ public class LoaderTask implements Runnable {
         ArrayList<ItemInfo> allItems = mBgDataModel.getAllWorkspaceItems();
 
         // Screen set is never empty
-        IntArray allScreens = mBgDataModel.collectWorkspaceScreens(mApp.getContext());
+        IntArray allScreens = mBgDataModel.collectWorkspaceScreens();
         final int firstScreen = allScreens.get(0);
         IntSet firstScreens = IntSet.wrap(firstScreen);
 
@@ -738,15 +738,8 @@ public class LoaderTask implements Runnable {
                     String savedProvider = c.getAppWidgetProvider();
                     final ComponentName component;
 
-                    if ((c.getOptions() & LauncherAppWidgetInfo.OPTION_SEARCH_WIDGET) != 0) {
-                        component  = QsbContainerView.getSearchComponentName(mApp.getContext());
-                        if (component == null) {
-                            c.markDeleted("Discarding SearchWidget without packagename ");
-                            return;
-                        }
-                    } else {
-                        component = ComponentName.unflattenFromString(savedProvider);
-                    }
+                    component = ComponentName.unflattenFromString(savedProvider);
+
                     final boolean isIdValid =
                             !c.hasRestoreFlag(LauncherAppWidgetInfo.FLAG_ID_NOT_VALID);
                     final boolean wasProviderReady =

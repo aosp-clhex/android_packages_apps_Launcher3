@@ -190,7 +190,7 @@ import com.android.launcher3.popup.ArrowPopup;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SystemShortcut;
-import com.android.launcher3.qsb.QsbContainerView;
+import com.android.launcher3.quickspace.QuickSpaceView;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.statemanager.StatefulActivity;
@@ -427,7 +427,8 @@ public class Launcher extends StatefulActivity<LauncherState>
     private StartupLatencyLogger mStartupLatencyLogger;
     private CellPosMapper mCellPosMapper = CellPosMapper.DEFAULT;
 
-    private boolean mSmartspaceEnabled;
+    // QuickSpace
+    private QuickSpaceView mQuickSpace;
 
     @Override
     @TargetApi(Build.VERSION_CODES.S)
@@ -530,8 +531,6 @@ public class Launcher extends StatefulActivity<LauncherState>
         mAppWidgetManager = new WidgetManagerHelper(this);
         mAppWidgetHolder = createAppWidgetHolder();
         mAppWidgetHolder.startListening();
-
-        mSmartspaceEnabled = Utilities.showSmartspace(this);
 
         mPopupDataProvider = new PopupDataProvider(this::updateNotificationDots);
 
@@ -1076,6 +1075,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         } else {
             mOverlayManager.onActivityStopped(this);
         }
+        if (mQuickSpace != null) {
+            mQuickSpace.onPause();
+        }
         hideKeyboard();
         logStopAndResume(false /* isResume */);
         mAppWidgetHolder.setActivityStarted(false);
@@ -1268,6 +1270,10 @@ public class Launcher extends StatefulActivity<LauncherState>
                 TraceHelper.FLAG_UI_EVENT);
         super.onResume();
 
+        if (mQuickSpace != null) {
+            mQuickSpace.onResume();
+        }
+
         if (mDeferOverlayCallbacks) {
             scheduleDeferredCheck();
         } else {
@@ -1292,6 +1298,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         if (!mDeferOverlayCallbacks) {
             mOverlayManager.onActivityPaused(this);
+        }
+        if (mQuickSpace != null) {
+            mQuickSpace.onPause();
         }
         mAppWidgetHolder.setActivityResumed(false);
     }
@@ -1368,6 +1377,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         // Setup Scrim
         mScrimView = findViewById(R.id.scrim_view);
+
+        // QuickSpace
+        mQuickSpace = findViewById(R.id.reserved_container_workspace);
 
         // Setup the drag controller (drop targets have to be added in reverse order in priority)
         mDropTargetBar.setup(mDragController);
@@ -1816,6 +1828,10 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         mOverlayManager.onActivityDestroyed(this);
         mUserChangedCallbackCloseable.close();
+        
+        if (mQuickSpace != null) {
+            mQuickSpace.onPause();
+        }
     }
 
     public LauncherAccessibilityDelegate getAccessibilityDelegate() {
@@ -2336,11 +2352,11 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public void bindScreens(IntArray orderedScreenIds) {
         int firstScreenPosition = 0;
-        if (mSmartspaceEnabled &&
+        if (Utilities.showQuickspace(this) &&
                 orderedScreenIds.indexOf(Workspace.FIRST_SCREEN_ID) != firstScreenPosition) {
             orderedScreenIds.removeValue(Workspace.FIRST_SCREEN_ID);
             orderedScreenIds.add(firstScreenPosition, Workspace.FIRST_SCREEN_ID);
-        } else if (!mSmartspaceEnabled && orderedScreenIds.isEmpty()) {
+        } else if (!Utilities.showQuickspace(this) && orderedScreenIds.isEmpty()) {
             // If there are no screens, we need to have an empty screen
             mWorkspace.addExtraEmptyScreens();
         }
@@ -2364,7 +2380,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         int count = orderedScreenIds.size();
         for (int i = 0; i < count; i++) {
             int screenId = orderedScreenIds.get(i);
-            if (mSmartspaceEnabled && screenId == Workspace.FIRST_SCREEN_ID) {
+            if (Utilities.showQuickspace(this) && screenId == Workspace.FIRST_SCREEN_ID) {
                 // No need to bind the first screen, as its always bound.
                 continue;
             }
@@ -2569,14 +2585,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     private View inflateAppWidget(LauncherAppWidgetInfo item) {
-        if (item.hasOptionFlag(LauncherAppWidgetInfo.OPTION_SEARCH_WIDGET)) {
-            item.providerName = QsbContainerView.getSearchComponentName(this);
-            if (item.providerName == null) {
-                getModelWriter().deleteItemFromDatabase(item,
-                        "search widget removed because search component cannot be found");
-                return null;
-            }
-        }
         final AppWidgetHostView view;
         if (mIsSafeModeEnabled) {
             view = new PendingAppWidgetHostView(this, item, mIconCache, true);
